@@ -16,6 +16,7 @@ class WeatherViewController: UIViewController {
     @IBOutlet var lblDegree: UILabel!
     @IBOutlet var lblWeather: UILabel!
     private var isGettingWeather = false
+    private let weatherUtil = WeatherAPIUtil()
     var model: RequestDBModel!
     
     @IBAction func refreshWeather(_ sender: UIButton) {
@@ -29,25 +30,21 @@ class WeatherViewController: UIViewController {
     private func getWeather(inCity city:String?){
         guard let city = city , isGettingWeather == false else {return}
         isGettingWeather = true
-        YahooWeatherAPI.shared.weather(location: city, completion: {(result) in
-            do {
-                let model = try result.get().convert()
-                DispatchQueue.main.async {
-                    self.model.date = Date().format()
-                    self.lblCity.text = model.location?.city
-                    self.lblWeather.text = model.forecasts?.first?.text
-                    if let degree = model.current_observation?.condition?.temperature{
-                        self.lblDegree.text = "\(degree)°"
-                        self.model.temperature = degree
-                    }
-                    DBUtil.addRequest(requestToSave: self.model)
-                    self.isGettingWeather = false
+        weatherUtil.getWeather(inCity: city) { (model) in
+            guard let model = model else {return}
+            DispatchQueue.main.async {
+                self.model.date = Date().format()
+                self.lblCity.text = model.location?.city
+                self.lblWeather.text = model.forecasts?.first?.text
+                if let degree = model.current_observation?.condition?.temperature{
+                    self.lblDegree.text = "\(degree)°"
+                    self.model.temperature = degree
                 }
-                    
-            } catch {
-                print(error.localizedDescription)
+                DBUtil.addRequest(requestToSave: self.model)
+                self.isGettingWeather = false
             }
-        })
+        }
+        
     }
     
     override func viewDidLoad() {

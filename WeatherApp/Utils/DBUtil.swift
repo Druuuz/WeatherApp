@@ -37,10 +37,9 @@ class DBUtil{
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return [RequestDBModel]()}
         
         let managedContext = appDelegate.persistentContainer.viewContext
-        
         var requests = [RequestDBModel]()
-
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Request")
+        
         do {
             let result = try managedContext.fetch(fetchRequest)
             for data in result as! [NSManagedObject] {
